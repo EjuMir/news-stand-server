@@ -30,10 +30,13 @@ async function run() {
     // Send a ping to confirm a successful connection
     
     // Collections
-    const newsCollection = client.db('newsStand').collection('newsCollection')
+    const newsCollection = client.db('newsStand').collection('newsCollection');
+    const allUsers = client.db('newsStand').collection('users');
+    const publishers = client.db('newsStand').collection('Publisher');
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
+    //All news collection
     app.get('/allNews', async (req, res) => {
         const allNews = await newsCollection.find().toArray();
         res.send(allNews);
@@ -51,7 +54,6 @@ async function run() {
         const id = req.params.id;
         const query = {_id : new ObjectId(id) }
         const view = req.body;
-        console.log(view);
         const updateView = {
             $set:{
                 views: view.views
@@ -59,6 +61,32 @@ async function run() {
         }
         const updateNews = await newsCollection.updateOne(query, updateView);
         res.send(updateNews);
+    })
+
+    // All users collection
+
+    app.post('/users', async(req, res) => {
+      const user = req.body;
+      console.log(user);
+      const query = {email : user.email};
+      const userExist = await allUsers.findOne(query);
+      if(userExist){
+        return res.send({message: 'User already exists', insertedId:null});
+      }
+      const newUser = await allUsers.insertOne(user);
+      res.send(newUser);
+    })
+
+    app.get('/users', async(req, res) => {
+       const user = await allUsers.find().toArray();
+       res.send(user);
+    })
+
+    //Publisher collection get 
+
+    app.get('/publisher', async (req, res) => {
+        const publisher = await publishers.find().toArray();
+        res.send(publisher);
     })
 
   } finally {
