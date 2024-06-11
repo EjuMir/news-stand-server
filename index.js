@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 
 app.use(cors({
@@ -35,6 +36,13 @@ async function run() {
     const publishers = client.db('newsStand').collection('Publisher');
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '1h' });
+      console.log(token);
+      res.send({ token });
+    })
 
     //All news collection
     app.get('/allNews', async (req, res) => {
@@ -67,7 +75,6 @@ async function run() {
 
     app.post('/users', async(req, res) => {
       const user = req.body;
-      console.log(user);
       const query = {email : user.email};
       const userExist = await allUsers.findOne(query);
       if(userExist){
