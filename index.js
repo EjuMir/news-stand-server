@@ -89,12 +89,39 @@ async function run() {
        res.send(user);
     })
 
-    //Publisher collection get 
+    // Publisher collection get 
 
     app.get('/publisher', async (req, res) => {
         const publisher = await publishers.find().toArray();
         res.send(publisher);
     })
+
+    // Admin related collection
+
+    app.patch('/users/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await allUsers.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+    app.get('/users/admin/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email};
+      const userResult = await allUsers.findOne(query);
+      let admin = false;
+      if(userResult?.role === "admin"){
+       admin = true;
+      }
+      res.send({ admin });
+    })
+
+
 
   } finally {
     // Ensures that the client will close when you finish/error
