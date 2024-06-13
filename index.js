@@ -23,6 +23,23 @@ const client = new MongoClient(uri, {
   }
 });
 
+// Middleware - Verify token
+
+const verifyToken = (req, res, next) => {
+  // console.log(req.headers.authorization);
+  if (!req.headers.authorization) {
+    return res.status(401).send({ message: 'unauthorized attempt' });
+  }
+  const token = req.headers.authorization;
+  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+    if(err){
+      return res.status(401).send({ message: 'unauthorized attempt' })
+    }
+    req.decoded = decoded;
+    next();
+  })
+}
+
 async function run() {
    
   try {
@@ -40,7 +57,6 @@ async function run() {
     app.post('/jwt', async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '1h' });
-      console.log(token);
       res.send({ token });
     })
 
@@ -84,7 +100,7 @@ async function run() {
       res.send(newUser);
     })
 
-    app.get('/users', async(req, res) => {
+    app.get('/users', verifyToken, async(req, res) => {
        const user = await allUsers.find().toArray();
        res.send(user);
     })
