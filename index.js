@@ -94,13 +94,13 @@ async function run() {
       const query = {email : user.email};
       const userExist = await allUsers.findOne(query);
       if(userExist){
-        return res.send({message: 'User already exists', insertedId:null});
+        return res.send({message: 'User already exists', insertedId : null});
       }
       const newUser = await allUsers.insertOne(user);
       res.send(newUser);
     })
 
-    app.get('/users', verifyToken, async(req, res) => {
+    app.get('/users', async(req, res) => {
        const user = await allUsers.find().toArray();
        res.send(user);
     })
@@ -137,6 +137,20 @@ async function run() {
       res.send({ admin });
     })
 
+    // update users
+    app.patch('/users/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = req.body;
+      const updatedDoc = {
+        $set: {
+             name: user.updatedName,
+             image: user.updatedPhoto
+        }
+      };
+      const result = await allUsers.updateOne(query, updatedDoc);
+      res.send(result);
+    })
 
 
   } finally {
