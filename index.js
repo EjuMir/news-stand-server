@@ -51,6 +51,8 @@ async function run() {
     const newsCollection = client.db('newsStand').collection('newsCollection');
     const allUsers = client.db('newsStand').collection('users');
     const publishers = client.db('newsStand').collection('Publisher');
+    const articleRequest = client.db('newsStand').collection('ArticleRequest');
+
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
     
@@ -100,7 +102,7 @@ async function run() {
       res.send(newUser);
     })
 
-    app.get('/users', async(req, res) => {
+    app.get('/users', verifyToken, async(req, res) => {
        const user = await allUsers.find().toArray();
        res.send(user);
     })
@@ -152,6 +154,13 @@ async function run() {
       res.send(result);
     })
 
+    //article request collection
+
+    app.post('/articleReq', verifyToken, async (req, res) => {
+      const item = req.body;
+      const result = await articleRequest.insertOne(item);
+      res.send(result);
+    });
 
   } finally {
     // Ensures that the client will close when you finish/error
