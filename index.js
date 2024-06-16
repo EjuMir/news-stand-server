@@ -102,7 +102,7 @@ async function run() {
       res.send(newUser);
     })
 
-    app.get('/users', verifyToken, async(req, res) => {
+    app.get('/users', async(req, res) => {
        const user = await allUsers.find().toArray();
        res.send(user);
     })
@@ -161,6 +161,23 @@ async function run() {
       const result = await articleRequest.insertOne(item);
       res.send(result);
     });
+
+    app.get('/articleReq', verifyToken, async (req, res) => {
+      const result = await articleRequest.find().toArray();
+      res.send(result);
+    });
+
+    app.patch('/articleReq/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: 'Approved'
+        }
+      }
+      const result = await articleRequest.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
 
   } finally {
     // Ensures that the client will close when you finish/error
