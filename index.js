@@ -185,12 +185,15 @@ async function run() {
     app.patch('/articleReq/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
+      const body = req.body;
+      const option = {upsert : true};
       const updatedDoc = {
         $set: {
-          status: 'Approved'
+          declineReason : body.declineReason,
+          status: body.status,
         }
       }
-      const result = await articleRequest.updateOne(filter, updatedDoc);
+      const result = await articleRequest.updateOne(filter, updatedDoc, option);
       res.send(result);
     })
     
