@@ -68,6 +68,11 @@ async function run() {
         res.send(allNews);
     })
 
+    app.post('/allNews', async (req, res) => {
+      const news = req.body;
+      const newNews = await newsCollection.insertOne(news);
+      res.send(newNews);
+    })
 
     app.get('/allNews/:id', async (req, res) => {
         const id = req.params.id;
@@ -76,6 +81,16 @@ async function run() {
         res.send(singleNews);
         
     })
+
+    app.delete('/allNews/:id', async(req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        console.log(query);
+        const deleteNews = await newsCollection.deleteOne(query);
+        res.send(deleteNews);
+        
+    })
+
     app.patch('/allNews/:id', async (req, res) => {
         const id = req.params.id;
         const query = {_id : new ObjectId(id) }
@@ -176,6 +191,13 @@ async function run() {
         }
       }
       const result = await articleRequest.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+    
+    app.delete('/articleReq/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await articleRequest.deleteOne(filter);
       res.send(result);
     })
 
