@@ -74,20 +74,20 @@ async function run() {
       res.send(newNews);
     })
 
+    app.delete('/allNews/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {id: id};
+      console.log(query);
+      const result = await newsCollection.deleteOne(query);
+      res.send(result);
+      
+  })
+
     app.get('/allNews/:id', async (req, res) => {
         const id = req.params.id;
         const query = {_id : new ObjectId(id) }
         const singleNews = await newsCollection.findOne(query);
         res.send(singleNews);
-        
-    })
-
-    app.delete('/allNews/:id', async(req, res) => {
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        console.log(query);
-        const deleteNews = await newsCollection.deleteOne(query);
-        res.send(deleteNews);
         
     })
 
