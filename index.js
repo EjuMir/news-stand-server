@@ -77,7 +77,6 @@ async function run() {
     app.delete('/allNews/:id', async(req, res) => {
       const id = req.params.id;
       const query = {id: id};
-      console.log(query);
       const result = await newsCollection.deleteOne(query);
       res.send(result);
       
@@ -93,6 +92,10 @@ async function run() {
 
     app.patch('/allNews/:id', async (req, res) => {
         const id = req.params.id;
+        const idSub = req.params.id;
+        const filter = {id: idSub};
+        console.log(filter);
+        const body = req.body;
         const query = {_id : new ObjectId(id) }
         const view = req.body;
         const updateView = {
@@ -100,9 +103,16 @@ async function run() {
                 views: view.views
             }
         }
+        const updateSub = {
+          $set:{
+            subscription: body.subscription,  
+          }
+        }
         const updateNews = await newsCollection.updateOne(query, updateView);
-        res.send(updateNews);
+        const updateSubscription = await newsCollection.updateOne(filter, updateSub);
+        res.send({updateNews, updateSubscription});
     })
+
 
     // All users collection
 
@@ -191,6 +201,7 @@ async function run() {
         $set: {
           declineReason : body.declineReason,
           status: body.status,
+          subscription: body.subscription,
         }
       }
       const result = await articleRequest.updateOne(filter, updatedDoc, option);
