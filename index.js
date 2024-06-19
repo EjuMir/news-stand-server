@@ -139,6 +139,12 @@ async function run() {
         res.send(publisher);
     })
 
+    app.post('/publisher', async (req, res) => {
+      const publisher = req.body;
+      const newPublisher = await publishers.insertOne(publisher);
+      res.send(newPublisher);
+    })
+
     // Admin related collection
 
     app.patch('/users/admin/:id', async (req, res) => {
