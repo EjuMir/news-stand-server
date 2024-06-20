@@ -4,10 +4,11 @@ require('dotenv').config();
 const app = express();
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
+const stripe = require('stripe')(process.env.STRIPE_KEY)
 
 app.use(cors({
-    origin:['http://localhost:5173'],
-    allowedHeaders: 'Content-Type, Authorization',
+  origin: ['http://localhost:5173'],
+  allowedHeaders: 'Content-Type, Authorization',
 }));
 app.use(express.json());
 
@@ -33,7 +34,7 @@ const verifyToken = (req, res, next) => {
   }
   const token = req.headers.authorization;
   jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
-    if(err){
+    if (err) {
       return res.status(401).send({ message: 'unauthorized attempt' })
     }
     req.decoded = decoded;
@@ -42,21 +43,22 @@ const verifyToken = (req, res, next) => {
 }
 
 async function run() {
-   
+
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // Send a ping to confirm a successful connection
-    
+
     // Collections
     const newsCollection = client.db('newsStand').collection('newsCollection');
     const allUsers = client.db('newsStand').collection('users');
     const publishers = client.db('newsStand').collection('Publisher');
     const articleRequest = client.db('newsStand').collection('ArticleRequest');
+    const paymentCollection = client.db('newsStand').collection('PaymentCollection');
 
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    
+
     app.post('/jwt', async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '1h' });
@@ -65,8 +67,8 @@ async function run() {
 
     //All news collection
     app.get('/allNews', async (req, res) => {
-        const allNews = await newsCollection.find().toArray();
-        res.send(allNews);
+      const allNews = await newsCollection.find().toArray();
+      res.send(allNews);
     })
 
     app.post('/allNews', async (req, res) => {
@@ -75,69 +77,69 @@ async function run() {
       res.send(newNews);
     })
 
-    app.delete('/allNews/:id', async(req, res) => {
+    app.delete('/allNews/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {id: id};
+      const query = { id: id };
       const result = await newsCollection.deleteOne(query);
       res.send(result);
-      
-  })
+
+    })
 
     app.get('/allNews/:id', async (req, res) => {
-        const id = req.params.id;
-        const query = {_id : new ObjectId(id) }
-        const singleNews = await newsCollection.findOne(query);
-        res.send(singleNews);
-        
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const singleNews = await newsCollection.findOne(query);
+      res.send(singleNews);
+
     })
 
     app.patch('/allNews/:id', async (req, res) => {
-        const id = req.params.id;
-        const idSub = req.params.id;
-        const filter = {id: idSub};
-        console.log(filter);
-        const body = req.body;
-        const query = {_id : new ObjectId(id) }
-        const view = req.body;
-        const updateView = {
-            $set:{
-                views: view.views
-            }
+      const id = req.params.id;
+      const idSub = req.params.id;
+      const filter = { id: idSub };
+      console.log(filter);
+      const body = req.body;
+      const query = { _id: new ObjectId(id) }
+      const view = req.body;
+      const updateView = {
+        $set: {
+          views: view.views
         }
-        const updateSub = {
-          $set:{
-            subscription: body.subscription,  
-          }
+      }
+      const updateSub = {
+        $set: {
+          subscription: body.subscription,
         }
-        const updateNews = await newsCollection.updateOne(query, updateView);
-        const updateSubscription = await newsCollection.updateOne(filter, updateSub);
-        res.send({updateNews, updateSubscription});
+      }
+      const updateNews = await newsCollection.updateOne(query, updateView);
+      const updateSubscription = await newsCollection.updateOne(filter, updateSub);
+      res.send({ updateNews, updateSubscription });
     })
 
 
     // All users collection
 
-    app.post('/users', async(req, res) => {
+    app.post('/users', async (req, res) => {
       const user = req.body;
-      const query = {email : user.email};
+      const query = { email: user.email };
       const userExist = await allUsers.findOne(query);
-      if(userExist){
-        return res.send({message: 'User already exists', insertedId : null});
+      if (userExist) {
+        return res.send({ message: 'User already exists', insertedId: null });
       }
       const newUser = await allUsers.insertOne(user);
       res.send(newUser);
     })
 
-    app.get('/users', async(req, res) => {
-       const user = await allUsers.find().toArray();
-       res.send(user);
+    app.get('/users', async (req, res) => {
+      const user = await allUsers.find().toArray();
+      res.send(user);
     })
 
     // Publisher collection get 
 
     app.get('/publisher', async (req, res) => {
-        const publisher = await publishers.find().toArray();
-        res.send(publisher);
+      const publisher = await publishers.find().toArray();
+      res.send(publisher);
     })
 
     app.post('/publisher', async (req, res) => {
@@ -162,24 +164,24 @@ async function run() {
 
     app.get('/users/admin/:email', async (req, res) => {
       const email = req.params.email;
-      const query = { email: email};
+      const query = { email: email };
       const userResult = await allUsers.findOne(query);
       let admin = false;
-      if(userResult?.role === "admin"){
-       admin = true;
+      if (userResult?.role === "admin") {
+        admin = true;
       }
       res.send({ admin });
     })
 
     // update users
-    app.patch('/users/:email', async(req, res) => {
+    app.patch('/users/:email', async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const user = req.body;
       const updatedDoc = {
         $set: {
-             name: user.updatedName,
-             image: user.updatedPhoto
+          name: user.updatedName,
+          image: user.updatedPhoto
         }
       };
       const result = await allUsers.updateOne(query, updatedDoc);
@@ -203,10 +205,10 @@ async function run() {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const body = req.body;
-      const option = {upsert : true};
+      const option = { upsert: true };
       const updatedDoc = {
         $set: {
-          declineReason : body.declineReason,
+          declineReason: body.declineReason,
           status: body.status,
           subscription: body.subscription,
         }
@@ -214,12 +216,46 @@ async function run() {
       const result = await articleRequest.updateOne(filter, updatedDoc, option);
       res.send(result);
     })
-    
+
     app.delete('/articleReq/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const result = await articleRequest.deleteOne(filter);
       res.send(result);
+    })
+
+    // Payment Intent 
+    app.post('/create-payment-intent', async(req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+      console.log(amount)
+
+      const payment = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      });
+
+      res.send({
+        clientSecret: payment.client_secret
+      })
+    });
+
+    app.get('/payments/:email', verifyToken, async (req, res) => {
+      const query = { email: req.params.email }
+      if (req.params.email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      const result = await paymentCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    app.post('/payments', async (req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentCollection.insertOne(payment);
+      console.log(payment);
+
+      res.send(paymentResult);
     })
 
   } finally {
