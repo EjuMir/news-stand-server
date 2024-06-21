@@ -135,6 +135,21 @@ async function run() {
       res.send(user);
     })
 
+    app.patch('/users/:email', async (req, res) => {
+        const email = req.params.email;
+        const filter = { email: email };
+        const body = req.body;
+        const options = {upsert: true}
+        const updatedDoc = {
+          $set: {
+            subscript : body.subscript
+          }
+        }
+        const result = await allUsers.updateOne(filter, updatedDoc, options);
+        res.send(result);
+      })
+    
+
     // Publisher collection get 
 
     app.get('/publisher', async (req, res) => {
@@ -256,6 +271,11 @@ async function run() {
       console.log(payment);
 
       res.send(paymentResult);
+    })
+
+    app.get('/payments', async (req, res) =>{
+      const result = await paymentCollection.find().toArray();
+      res.send(result);
     })
 
   } finally {
