@@ -140,13 +140,22 @@ async function run() {
         const filter = { email: email };
         const body = req.body;
         const options = {upsert: true}
+        const premiumEx = req.body;
         const updatedDoc = {
           $set: {
-            subscript : body.subscript
+            subscript : body.subscript,
+            premiumExpiresIn : body.premiumExpiresIn,
           }
         }
+        const updatedSub = {
+          $set: {
+            subscript : premiumEx.subscript,
+          }
+        }
+        
         const result = await allUsers.updateOne(filter, updatedDoc, options);
-        res.send(result);
+        const resultSub = await allUsers.updateOne(filter, updatedSub);
+        res.send([result, resultSub]);
       })
     
 
