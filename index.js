@@ -7,7 +7,7 @@ const port = process.env.PORT || 5000;
 const stripe = require('stripe')(process.env.STRIPE_KEY)
 
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: [ 'news-stand-bce00.firebaseapp.com', 'news-stand-bce00.web.app', 'http://localhost:5173'],
   allowedHeaders: 'Content-Type, Authorization',
 }));
 app.use(express.json());
@@ -98,7 +98,6 @@ async function run() {
       const id = req.params.id;
       const idSub = req.params.id;
       const filter = { id: idSub };
-      console.log(filter);
       const body = req.body;
       const query = { _id: new ObjectId(id) }
       const view = req.body;
@@ -112,9 +111,18 @@ async function run() {
           subscription: body.subscription,
         }
       }
+      const updateNewsArticle = {
+        $set: {
+          title: body.title,
+          image: body.image,
+          description: body.description,
+          status: body.status,
+        }
+      }
       const updateNews = await newsCollection.updateOne(query, updateView);
       const updateSubscription = await newsCollection.updateOne(filter, updateSub);
-      res.send({ updateNews, updateSubscription });
+      const updateInfo = await newsCollection.updateOne(filter, updateNewsArticle);
+      res.send({ updateNews, updateSubscription, updateInfo });
     })
 
 
@@ -229,6 +237,7 @@ async function run() {
     app.patch('/articleReq/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
+      const query = {_id: new ObjectId(id)} 
       const body = req.body;
       const option = { upsert: true };
       const updatedDoc = {
@@ -238,8 +247,18 @@ async function run() {
           subscription: body.subscription,
         }
       }
+      const updatedBody = req.body;
+      const updateArticle = {
+        $set: {
+          title: updatedBody.title,
+          image: updatedBody.image,
+          description: updatedBody.description,
+          status: updatedBody.status,
+        }
+      }
       const result = await articleRequest.updateOne(filter, updatedDoc, option);
-      res.send(result);
+      const updateReq = await articleRequest.updateOne(query, updateArticle)
+      res.send({result, updateReq});
     })
 
     app.delete('/articleReq/:id', async (req, res) => {
@@ -253,8 +272,6 @@ async function run() {
     app.post('/create-payment-intent', async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
-      console.log(amount)
-
       const payment = await stripe.paymentIntents.create({
         amount: amount,
         currency: 'usd',
@@ -278,8 +295,6 @@ async function run() {
     app.post('/payments', async (req, res) => {
       const payment = req.body;
       const paymentResult = await paymentCollection.insertOne(payment);
-      console.log(payment);
-
       res.send(paymentResult);
     })
 
