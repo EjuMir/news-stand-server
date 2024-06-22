@@ -42,6 +42,7 @@ const verifyToken = (req, res, next) => {
   })
 }
 
+
 async function run() {
 
   try {
@@ -136,28 +137,28 @@ async function run() {
     })
 
     app.patch('/users/:email', async (req, res) => {
-        const email = req.params.email;
-        const filter = { email: email };
-        const body = req.body;
-        const options = {upsert: true}
-        const premiumEx = req.body;
-        const updatedDoc = {
-          $set: {
-            subscript : body.subscript,
-            premiumExpiresIn : body.premiumExpiresIn,
-          }
+      const email = req.params.email;
+      const filter = { email: email };
+      const body = req.body;
+      const options = { upsert: true }
+      const premiumEx = req.body;
+      const updatedDoc = {
+        $set: {
+          subscript: body.subscript,
+          premiumExpiresIn: body.premiumExpiresIn,
         }
-        const updatedSub = {
-          $set: {
-            subscript : premiumEx.subscript,
-          }
+      }
+      const updatedSub = {
+        $set: {
+          subscript: premiumEx.subscript,
         }
-        
-        const result = await allUsers.updateOne(filter, updatedDoc, options);
-        const resultSub = await allUsers.updateOne(filter, updatedSub);
-        res.send([result, resultSub]);
-      })
-    
+      }
+
+      const result = await allUsers.updateOne(filter, updatedDoc, options);
+      const resultSub = await allUsers.updateOne(filter, updatedSub);
+      res.send([result, resultSub]);
+    })
+
 
     // Publisher collection get 
 
@@ -249,7 +250,7 @@ async function run() {
     })
 
     // Payment Intent 
-    app.post('/create-payment-intent', async(req, res) => {
+    app.post('/create-payment-intent', async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
       console.log(amount)
@@ -282,7 +283,7 @@ async function run() {
       res.send(paymentResult);
     })
 
-    app.get('/payments', async (req, res) =>{
+    app.get('/payments', async (req, res) => {
       const result = await paymentCollection.find().toArray();
       res.send(result);
     })
