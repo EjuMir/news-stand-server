@@ -7,7 +7,7 @@ const port = process.env.PORT || 5000;
 const stripe = require('stripe')(process.env.STRIPE_KEY)
 
 app.use(cors({
-  origin: [ 'news-stand-bce00.firebaseapp.com', 'news-stand-bce00.web.app', 'http://localhost:5173'],
+  origin: [ 'https://news-stand-bce00.firebaseapp.com', 'https://news-stand-bce00.web.app', 'http://localhost:5173', 'https://news-stand19.netlify.app'],
   allowedHeaders: 'Content-Type, Authorization',
 }));
 app.use(express.json());
